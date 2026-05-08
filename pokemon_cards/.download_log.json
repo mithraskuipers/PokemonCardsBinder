@@ -1,0 +1,98 @@
+{
+  "neo-destiny": {
+    "name": "Neo Destiny",
+    "done": true,
+    "count": 113,
+    "total": 113,
+    "failed": [],
+    "date": "2026-05-08 21:09"
+  },
+  "neo-revelation": {
+    "name": "Neo Revelation",
+    "done": true,
+    "count": 66,
+    "total": 66,
+    "failed": [],
+    "date": "2026-05-08 21:09"
+  },
+  "neo-discovery": {
+    "name": "Neo Discovery",
+    "done": true,
+    "count": 75,
+    "total": 75,
+    "failed": [],
+    "date": "2026-05-08 21:10"
+  },
+  "neo-genesis": {
+    "name": "Neo Genesis",
+    "done": true,
+    "count": 111,
+    "total": 111,
+    "failed": [],
+    "date": "2026-05-08 21:10"
+  },
+  "gym-challenge": {
+    "name": "Gym Challenge",
+    "done": true,
+    "count": 132,
+    "total": 132,
+    "failed": [],
+    "date": "2026-05-08 21:11"
+  },
+  "gym-heroes": {
+    "name": "Gym Heroes",
+    "done": true,
+    "count": 132,
+    "total": 132,
+    "failed": [],
+    "date": "2026-05-08 21:12"
+  },
+  "team-rocket": {
+    "name": "Team Rocket",
+    "done": true,
+    "count": 83,
+    "total": 83,
+    "failed": [],
+    "date": "2026-05-08 21:13"
+  },
+  "base-set-2": {
+    "name": "Base Set 2",
+    "done": true,
+    "count": 130,
+    "total": 130,
+    "failed": [],
+    "date": "2026-05-08 21:13"
+  },
+  "fossil": {
+    "name": "Fossil",
+    "done": true,
+    "count": 62,
+    "total": 62,
+    "failed": [],
+    "date": "2026-05-08 21:14"
+  },
+  "jungle": {
+    "name": "Jungle",
+    "done": true,
+    "count": 64,
+    "total": 64,
+    "failed": [],
+    "date": "2026-05-08 21:14"
+  },
+  "base-set": {
+    "name": "Base Set",
+    "done": true,
+    "count": 102,
+    "total": 102,
+    "failed": [],
+    "date": "2026-05-08 21:15"
+  },
+  "wizards-black-star-promos": {
+    "name": "Wizards Black Star Promos",
+    "done": true,
+    "count": 53,
+    "total": 53,
+    "failed": [],
+    "date": "2026-05-08 21:16"
+  }
+}

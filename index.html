@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pokémon Cards Binder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <nav>
+    <div class="nav-logo">
+      <div class="pokeball"></div>
+      Pokémon Cards Binder
+    </div>
+    <div class="spacer"></div>
+    <div class="stat-pill" id="pill-collected" style="display:none">
+      <div class="dot"></div>
+      <span id="pill-owned">0</span>/<span id="pill-total">0</span>
+      <span class="val" style="margin-left:2px">collected</span>
+    </div>
+    <div class="set-selector-wrap">
+      <select id="set-picker">
+        <option value="">— Choose a Set —</option>
+      </select>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </nav>
+
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+
+  <div id="set-banner">
+    <div class="banner-inner">
+      <div style="display:contents">
+        <div class="banner-title" id="banner-title"></div>
+        <div class="banner-count" id="banner-count"></div>
+      </div>
+      <div class="banner-pct" id="banner-pct">0%</div>
+    </div>
+  </div>
+
+  <div id="empty">
+    <div class="empty-ball"></div>
+    <h2 id="empty-title">Your binder is empty</h2>
+    <p id="empty-hint">Select a set from the dropdown above.</p>
+    <div class="empty-picker-wrap" id="empty-picker-wrap" style="display:none">
+      <select id="empty-set-picker">
+        <option value="">— Choose a Set —</option>
+      </select>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="position:absolute;right:14px;pointer-events:none;color:var(--text2)">
+        <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <span style="color:var(--text2);font-size:13px">Loading cards…</span>
+  </div>
+
+  <div id="grid-wrap">
+    <div id="card-grid"></div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="mobile-bar">
+    <div class="mobile-set-wrap">
+      <select id="mobile-set-picker">
+        <option value="">— Choose a Set —</option>
+      </select>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="mobile-stat" id="mobile-stat" style="display:none">
+      <span class="ms-val" id="mobile-pct">0%</span>
+      <span class="ms-label">complete</span>
+    </div>
+  </div>
+
+</div>
+<script src="cards_data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
