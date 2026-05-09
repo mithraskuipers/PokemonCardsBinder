@@ -567,3 +567,271 @@ select#empty-set-picker {
   .card-name { font-size: 11px; width: var(--card-w); }
   #pill-collected { display: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   ── VIEW TOGGLE (grid / focus) ──────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.view-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.view-btn:hover  { background: var(--bg4); color: var(--text); }
+.view-btn.active { background: var(--blue); color: #fff; }
+
+/* ════════════════════════════════════════════════════════════════
+   ── FOCUS / SINGLE-CARD OVERLAY ─────────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+
+#focus-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(5, 7, 16, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#focus-overlay.open { display: flex; }
+
+body.focus-open { overflow: hidden; }
+
+/* Panel — the white card container */
+#focus-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 360px;
+  animation: focusPop .2s cubic-bezier(.34,1.4,.64,1) both;
+}
+@keyframes focusPop {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Close button */
+.focus-close {
+  position: absolute;
+  top: -8px; right: -8px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+  z-index: 10;
+}
+.focus-close:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Card image */
+#focus-img-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+
+#focus-img {
+  width: 100%;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  box-shadow: 0 20px 60px #000000a0, 0 0 0 1px var(--bg4);
+  display: block;
+  background: var(--bg3);
+  transition: border-color .2s, box-shadow .3s, opacity .13s;
+}
+#focus-img.switching { opacity: 0; }
+
+/* Badge on focus card */
+.focus-badge {
+  position: absolute;
+  top: -10px; right: -10px;
+  min-width: 28px; height: 28px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 14px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 7px;
+  box-shadow: 0 0 0 3px var(--bg), 0 2px 10px #e8394f88;
+  opacity: 0; transform: scale(.5);
+  transition: opacity .2s, transform .25s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+}
+.focus-badge.visible { opacity: 1; transform: scale(1); }
+
+/* Card info */
+#focus-info {
+  text-align: center;
+  line-height: 1.3;
+}
+#focus-name {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--text);
+}
+#focus-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* +/- action buttons */
+#focus-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.focus-act {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: none;
+  font-size: 28px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 0 2px;
+  transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 16px #00000060;
+}
+.focus-act:active { transform: scale(.88) !important; }
+#focus-btn-plus  { background: var(--blue); color: #fff; }
+#focus-btn-plus:hover  { background: #fff; color: var(--blue); transform: scale(1.08); }
+#focus-btn-minus { background: var(--red);  color: #fff; }
+#focus-btn-minus:hover { background: #fff; color: var(--red);  transform: scale(1.08); }
+#focus-btn-minus.hidden { display: none; }
+
+/* Prev / Next navigation */
+#focus-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.focus-nav-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s, transform .15s;
+}
+.focus-nav-btn:hover:not(:disabled) {
+  background: var(--bg4);
+  color: var(--text);
+  border-color: var(--blue);
+  transform: scale(1.08);
+}
+.focus-nav-btn:disabled { opacity: .25; cursor: not-allowed; }
+
+#focus-counter {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text2);
+  min-width: 56px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thin progress bar */
+#focus-progress-track {
+  width: 100%;
+  max-width: 300px;
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+#focus-progress {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--gold));
+  border-radius: 2px;
+  transition: width .25s ease;
+}
+
+/* Keyboard hint */
+#focus-hint {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: .03em;
+  margin-top: -4px;
+}
+
+/* ── Focus mode mobile tweaks ─────────────────────────────────── */
+@media (max-width: 640px) {
+  #focus-panel   { max-width: 300px; gap: 12px; }
+  #focus-name    { font-size: 17px; }
+  .focus-act     { width: 46px; height: 46px; font-size: 24px; }
+  .view-toggle   { display: none !important; } /* use card tap on mobile */
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ── COLLECTION SAVE / LOAD BUTTONS ──────────────────────────────
+   ════════════════════════════════════════════════════════════════ */
+
+.collection-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.col-btn {
+  display: flex; align-items: center; gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1.5px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.col-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--blue); }
+.col-btn svg   { flex-shrink: 0; }
+
+/* Import button gets a subtle green tint to distinguish from export */
+.col-btn-import:hover { border-color: var(--green); }
+
+/* On mobile: hide labels, show icons only inside the bottom bar area */
+@media (max-width: 640px) {
+  /* Move buttons into nav on mobile — keep them icon-only */
+  nav .collection-btns { gap: 4px; }
+  .col-btn { padding: 0 9px; gap: 0; }
+  .col-btn span { display: none; }
+}

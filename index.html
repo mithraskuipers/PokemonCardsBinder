@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Pokémon Cards Binder</title>
+<title>Pokédex Binder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -17,7 +17,7 @@
   <nav>
     <div class="nav-logo">
       <div class="pokeball"></div>
-      Pokémon Cards Binder
+      Pokédex Binder
     </div>
     <div class="spacer"></div>
     <div class="stat-pill" id="pill-collected" style="display:none">
@@ -25,6 +25,43 @@
       <span id="pill-owned">0</span>/<span id="pill-total">0</span>
       <span class="val" style="margin-left:2px">collected</span>
     </div>
+
+    <!-- View toggle: grid / focus -->
+    <div class="view-toggle" id="view-toggle" style="display:none">
+      <button id="btn-view-grid" class="view-btn active" title="Grid view">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="6" height="6" rx="1.2" fill="currentColor"/>
+          <rect x="9" y="1" width="6" height="6" rx="1.2" fill="currentColor"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.2" fill="currentColor"/>
+          <rect x="9" y="9" width="6" height="6" rx="1.2" fill="currentColor"/>
+        </svg>
+      </button>
+      <button id="btn-view-focus" class="view-btn" title="Browse one card at a time (F)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="3" y="1" width="10" height="14" rx="1.5" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Collection import / export -->
+    <div class="collection-btns" id="collection-btns">
+      <button class="col-btn" id="btn-export" title="Download your collection as JSON">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M7.5 1v9M4 7l3.5 3.5L11 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Save
+      </button>
+      <button class="col-btn col-btn-import" id="btn-import" title="Load a previously saved collection">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M7.5 10V1M4 4l3.5-3.5L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Load
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+
     <div class="set-selector-wrap">
       <select id="set-picker">
         <option value="">— Choose a Set —</option>
@@ -68,6 +105,52 @@
 
   <div id="grid-wrap">
     <div id="card-grid"></div>
+  </div>
+
+  <!-- Focus / browse mode overlay -->
+  <div id="focus-overlay">
+    <div id="focus-panel">
+
+      <button id="focus-btn-close" class="focus-close" title="Back to grid (Esc)">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div id="focus-img-wrap">
+        <img id="focus-img" src="" alt="" />
+        <div id="focus-badge" class="focus-badge"></div>
+      </div>
+
+      <div id="focus-info">
+        <div id="focus-name"></div>
+        <div id="focus-num"></div>
+      </div>
+
+      <div id="focus-actions">
+        <button id="focus-btn-minus" class="focus-act hidden" title="Remove one">&#x2212;</button>
+        <button id="focus-btn-plus"  class="focus-act"        title="Add one">&#x2b;</button>
+      </div>
+
+      <div id="focus-nav">
+        <button id="focus-btn-prev" class="focus-nav-btn" title="Previous (←)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span id="focus-counter">1 / 1</span>
+        <button id="focus-btn-next" class="focus-nav-btn" title="Next (→)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="focus-progress-track"><div id="focus-progress"></div></div>
+
+      <div id="focus-hint">← → navigate &nbsp;·&nbsp; Space add/remove &nbsp;·&nbsp; Esc close</div>
+
+    </div>
   </div>
 
   <div id="toast"></div>

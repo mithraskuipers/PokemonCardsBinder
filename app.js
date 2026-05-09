@@ -5,6 +5,8 @@ let currentSet   = null;
 let currentCards = [];
 let allSets      = {};
 let toastTimer   = null;
+let focusIndex   = 0;
+let currentView  = 'grid';
 
 const picker         = document.getElementById('set-picker');
 const mobilePicker   = document.getElementById('mobile-set-picker');
@@ -27,8 +29,26 @@ const pillTotal      = document.getElementById('pill-total');
 const toast          = document.getElementById('toast');
 const mobileStatWrap = document.getElementById('mobile-stat');
 const mobilePctEl    = document.getElementById('mobile-pct');
+const focusOverlay   = document.getElementById('focus-overlay');
+const focusImg       = document.getElementById('focus-img');
+const focusName      = document.getElementById('focus-name');
+const focusNum       = document.getElementById('focus-num');
+const focusCounter   = document.getElementById('focus-counter');
+const focusBadge     = document.getElementById('focus-badge');
+const focusBtnMinus  = document.getElementById('focus-btn-minus');
+const focusBtnPlus   = document.getElementById('focus-btn-plus');
+const focusBtnPrev   = document.getElementById('focus-btn-prev');
+const focusBtnNext   = document.getElementById('focus-btn-next');
+const focusBtnClose  = document.getElementById('focus-btn-close');
+const focusProgress  = document.getElementById('focus-progress');
+const focusHint      = document.getElementById('focus-hint');
+const btnExport      = document.getElementById('btn-export');
+const btnImport      = document.getElementById('btn-import');
+const importFile     = document.getElementById('import-file');
 
 const isMobile = () => window.matchMedia('(max-width: 640px)').matches;
+
+// ── Persistence ───────────────────────────────────────────────────────────────
 
 function loadCollection() {
   try { return JSON.parse(localStorage.getItem('pokedex_collection') || '{}'); }
@@ -39,9 +59,19 @@ function saveCollection() {
   catch(e) { console.warn('localStorage save failed:', e); }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function formatSetName(s) {
   return s.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
+function cardKey(card) { return `${currentSet}/${card.filename}`; }
+function formatNum(n) {
+  const s = String(n);
+  const m = s.match(/^([A-Za-z]*)(\d+)$/);
+  return m ? `#${m[1]}${m[2].padStart(3,'0')}` : `#${s}`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
   collection = loadCollection();
@@ -49,10 +79,8 @@ async function init() {
   let sets;
   try {
     if (window.CARDS_DATA && Object.keys(window.CARDS_DATA).length) {
-      // Loaded via cards_data.js — works with file:// and http:// alike
       sets = window.CARDS_DATA;
     } else {
-      // Fallback: fetch over HTTP (works when served via a web server)
       const res = await fetch('cards.json');
       if (!res.ok) throw new Error(res.status);
       sets = await res.json();
@@ -65,11 +93,7 @@ async function init() {
 
   allSets = sets;
   const setNames = Object.keys(sets).sort();
-
-  if (!setNames.length) {
-    emptyHint.textContent = 'No sets found in cards.json.';
-    return;
-  }
+  if (!setNames.length) { emptyHint.textContent = 'No sets found in cards.json.'; return; }
 
   setNames.forEach(s => {
     const label = formatSetName(s);
@@ -92,17 +116,86 @@ async function init() {
     picker.value = mobilePicker.value = emptyPicker.value = val;
     loadSet(val);
   };
-
   picker.addEventListener('change',       () => syncAndLoad(picker.value));
   mobilePicker.addEventListener('change', () => syncAndLoad(mobilePicker.value));
   emptyPicker.addEventListener('change',  () => syncAndLoad(emptyPicker.value));
+
+  document.getElementById('btn-view-grid').addEventListener('click',  () => setView('grid'));
+  document.getElementById('btn-view-focus').addEventListener('click', () => { if (currentCards.length) setView('focus'); });
+
+  focusBtnClose.addEventListener('click', () => setView('grid'));
+  focusBtnPrev.addEventListener('click',  () => navigateFocus(-1));
+  focusBtnNext.addEventListener('click',  () => navigateFocus(+1));
+  focusBtnPlus.addEventListener('click',  () => focusAdjust(+1));
+  focusBtnMinus.addEventListener('click', () => focusAdjust(-1));
+
+  // Swipe on mobile
+  let tx = 0;
+  focusOverlay.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  focusOverlay.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) navigateFocus(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  document.addEventListener('keydown', onKeyDown);
+
+  // ── Import / Export ────────────────────────────────────────────
+  btnExport.addEventListener('click', exportCollection);
+  btnImport.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', importCollection);
 }
 
+// ── Import / Export ──────────────────────────────────────────────────────────
+
+function exportCollection() {
+  const total = Object.keys(collection).length;
+  if (total === 0) { showToast('Nothing to save yet!'); return; }
+
+  const date    = new Date().toISOString().slice(0,10);
+  const payload = JSON.stringify(collection, null, 2);
+  const blob    = new Blob([payload], { type: 'application/json' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href        = url;
+  a.download    = `pokedex-collection-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✦ Saved ${total} card entries!`);
+}
+
+function importCollection(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (typeof data !== 'object' || Array.isArray(data)) throw new Error('bad format');
+      const count = Object.keys(data).length;
+      collection = data;
+      saveCollection();
+      // Re-render whichever view is active
+      if (currentSet) {
+        if (currentView === 'focus') renderFocus();
+        else renderGrid();
+        updateStats();
+      }
+      showToast(`✦ Loaded ${count} card entries!`);
+    } catch {
+      showToast('⚠ Could not read that file.');
+    }
+    // Reset so the same file can be re-imported if needed
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Set loading ───────────────────────────────────────────────────────────────
+
 function loadSet(setName) {
-  currentSet = setName;
+  currentSet  = setName;
+  focusIndex  = 0;
   emptyEl.classList.add('hidden');
-  gridWrap.classList.remove('visible');
-  setBanner.classList.remove('visible');
   loading.classList.add('visible');
 
   currentCards = (allSets[setName] || []).map(card => ({
@@ -111,18 +204,41 @@ function loadSet(setName) {
   }));
 
   loading.classList.remove('visible');
-  renderGrid();
+  document.getElementById('view-toggle').style.display = 'flex';
+  setView('grid');
   updateStats();
   setBanner.classList.add('visible');
-  gridWrap.classList.add('visible');
   pillCollected.style.display = 'flex';
   mobileStatWrap.style.display = 'flex';
 }
 
+// ── View switching ────────────────────────────────────────────────────────────
+
+function setView(mode) {
+  currentView = mode;
+  document.getElementById('btn-view-grid').classList.toggle('active',  mode === 'grid');
+  document.getElementById('btn-view-focus').classList.toggle('active', mode === 'focus');
+
+  if (mode === 'grid') {
+    focusOverlay.classList.remove('open');
+    document.body.classList.remove('focus-open');
+    renderGrid();
+    gridWrap.classList.add('visible');
+  } else {
+    gridWrap.classList.remove('visible');
+    focusOverlay.classList.add('open');
+    document.body.classList.add('focus-open');
+    renderFocus();
+    if (focusHint) focusHint.style.display = isMobile() ? 'none' : '';
+  }
+}
+
+// ── Grid view ─────────────────────────────────────────────────────────────────
+
 function renderGrid() {
   cardGrid.innerHTML = '';
   currentCards.forEach((card, idx) => {
-    const key   = `${currentSet}/${card.filename}`;
+    const key   = cardKey(card);
     const count = collection[key] || 0;
     cardGrid.appendChild(buildCardEl(card, key, count, idx));
   });
@@ -132,6 +248,7 @@ function buildCardEl(card, key, count, idx) {
   const item = document.createElement('div');
   item.className = 'card-item' + (count > 0 ? ' owned' : '');
   item.dataset.key = key;
+  item.dataset.idx = idx;
   item.style.animationDelay = Math.min(idx * 30, 400) + 'ms';
 
   const wrap = document.createElement('div');
@@ -171,53 +288,122 @@ function buildCardEl(card, key, count, idx) {
 
   const num = document.createElement('div');
   num.className = 'card-num';
-  // card.number may be "42" (plain) or "H8" (letter-prefixed holofoil etc.)
-  const numStr = String(card.number);
-  const numMatch = numStr.match(/^([A-Za-z]*)(\d+)$/);
-  num.textContent = numMatch
-    ? `#${numMatch[1]}${numMatch[2].padStart(3, '0')}`
-    : `#${numStr}`;
+  num.textContent = formatNum(card.number);
 
   item.append(wrap, name, num);
 
-  btnPlus.addEventListener('click',  e => { e.stopPropagation(); adjust(key, +1, item, badge, btnMinus); });
-  btnMinus.addEventListener('click', e => { e.stopPropagation(); adjust(key, -1, item, badge, btnMinus); });
+  btnPlus.addEventListener('click',  e => { e.stopPropagation(); gridAdjust(key, +1, item, badge, btnMinus); });
+  btnMinus.addEventListener('click', e => { e.stopPropagation(); gridAdjust(key, -1, item, badge, btnMinus); });
   item.addEventListener('click', e => {
     if (e.target === btnPlus || e.target === btnMinus) return;
-    const c = collection[key] || 0;
-    adjust(key, c === 0 ? +1 : -1, item, badge, btnMinus);
+    focusIndex = idx;
+    setView('focus');
   });
 
   return item;
 }
 
-function adjust(key, delta, item, badge, btnMinus) {
+function gridAdjust(key, delta, item, badge, btnMinus) {
   const prev = collection[key] || 0;
   const next = Math.max(0, prev + delta);
   if (next === prev) return;
-
-  if (next === 0) delete collection[key];
-  else collection[key] = next;
+  if (next === 0) delete collection[key]; else collection[key] = next;
   saveCollection();
-
   badge.textContent = next;
   item.classList.toggle('owned', next > 0);
   btnMinus.classList.toggle('hidden', next === 0);
+  if (delta > 0 && next === 1)      showToast('✦ Added to collection!');
+  else if (delta < 0 && next === 0) showToast('Removed from collection');
+  else if (delta > 0)               showToast(`×${next} — double added!`);
+  updateStats();
+}
+
+// ── Focus view ────────────────────────────────────────────────────────────────
+
+function navigateFocus(dir) {
+  const next = focusIndex + dir;
+  if (next < 0 || next >= currentCards.length) return;
+  focusIndex = next;
+  renderFocus();
+}
+
+function renderFocus() {
+  const card  = currentCards[focusIndex];
+  const key   = cardKey(card);
+  const count = collection[key] || 0;
+
+  focusImg.classList.add('switching');
+  setTimeout(() => { focusImg.src = card.url; focusImg.classList.remove('switching'); }, 130);
+  focusImg.alt = card.name;
+
+  focusName.textContent    = card.name;
+  focusNum.textContent     = formatNum(card.number);
+  focusCounter.textContent = `${focusIndex + 1} / ${currentCards.length}`;
+  focusBadge.textContent   = count;
+  focusBadge.classList.toggle('visible', count > 0);
+  focusBtnMinus.classList.toggle('hidden', count === 0);
+  focusBtnPrev.disabled = focusIndex === 0;
+  focusBtnNext.disabled = focusIndex === currentCards.length - 1;
+  focusProgress.style.width = ((focusIndex + 1) / currentCards.length * 100).toFixed(2) + '%';
+}
+
+function focusAdjust(delta) {
+  const card  = currentCards[focusIndex];
+  const key   = cardKey(card);
+  const prev  = collection[key] || 0;
+  const next  = Math.max(0, prev + delta);
+  if (next === prev) return;
+  if (next === 0) delete collection[key]; else collection[key] = next;
+  saveCollection();
+
+  focusBadge.textContent = next;
+  focusBadge.classList.toggle('visible', next > 0);
+  focusBtnMinus.classList.toggle('hidden', next === 0);
+
+  const gridItem = document.querySelector(`.card-item[data-idx="${focusIndex}"]`);
+  if (gridItem) {
+    const b = gridItem.querySelector('.badge');
+    const m = gridItem.querySelector('.btn-minus');
+    if (b) b.textContent = next;
+    if (m) m.classList.toggle('hidden', next === 0);
+    gridItem.classList.toggle('owned', next > 0);
+  }
 
   if (delta > 0 && next === 1)      showToast('✦ Added to collection!');
   else if (delta < 0 && next === 0) showToast('Removed from collection');
   else if (delta > 0)               showToast(`×${next} — double added!`);
-
   updateStats();
 }
 
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+
+function onKeyDown(e) {
+  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (currentView === 'focus') {
+    switch (e.key) {
+      case 'ArrowLeft':  case 'ArrowUp':    e.preventDefault(); navigateFocus(-1); break;
+      case 'ArrowRight': case 'ArrowDown':  e.preventDefault(); navigateFocus(+1); break;
+      case ' ':
+        e.preventDefault();
+        focusAdjust((collection[cardKey(currentCards[focusIndex])] || 0) > 0 ? -1 : +1);
+        break;
+      case '+': case '=': focusAdjust(+1); break;
+      case '-':           focusAdjust(-1); break;
+      case 'Escape':      setView('grid'); break;
+    }
+  } else {
+    if ((e.key === 'f' || e.key === 'F') && currentCards.length) setView('focus');
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
 function updateStats() {
   const total  = currentCards.length;
-  const owned  = currentCards.filter(c => (collection[`${currentSet}/${c.filename}`] || 0) > 0).length;
-  const copies = currentCards.reduce((s, c) => s + (collection[`${currentSet}/${c.filename}`] || 0), 0);
+  const owned  = currentCards.filter(c => (collection[cardKey(c)] || 0) > 0).length;
+  const copies = currentCards.reduce((s, c) => s + (collection[cardKey(c)] || 0), 0);
   const pct    = total ? (owned / total * 100) : 0;
   const pctStr = pct.toFixed(1) + '%';
-
   progressBar.style.width = pct + '%';
   bannerTitle.textContent = formatSetName(currentSet);
   bannerCount.textContent = `${owned} of ${total} unique · ${copies} copies`;
@@ -226,6 +412,8 @@ function updateStats() {
   pillTotal.textContent   = total;
   mobilePctEl.textContent = pctStr;
 }
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
 
 function showToast(msg) {
   toast.textContent = msg;
