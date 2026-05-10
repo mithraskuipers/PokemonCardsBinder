@@ -20,13 +20,13 @@
       Pokédex Binder
     </div>
     <div class="spacer"></div>
+
     <div class="stat-pill" id="pill-collected" style="display:none">
       <div class="dot"></div>
       <span id="pill-owned">0</span>/<span id="pill-total">0</span>
       <span class="val" style="margin-left:2px">collected</span>
     </div>
 
-    <!-- View toggle: grid / focus -->
     <div class="view-toggle" id="view-toggle" style="display:none">
       <button id="btn-view-grid" class="view-btn active" title="Grid view">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -43,7 +43,6 @@
       </button>
     </div>
 
-    <!-- Collection import / export -->
     <div class="collection-btns" id="collection-btns">
       <button class="col-btn" id="btn-export" title="Download your collection as JSON">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -60,6 +59,22 @@
         Load
       </button>
       <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+
+    <!-- Google auth area: button when signed out, pill when signed in -->
+    <div class="google-auth-wrap" id="google-auth-wrap">
+      <div id="g-signin-btn"></div>
+      <div id="google-user-pill" class="google-user-pill" style="display:none">
+        <img id="google-avatar" class="google-avatar" src="" alt="avatar">
+        <span id="google-name" class="google-name"></span>
+        <button id="btn-google-signout" class="google-signout-btn" title="Sign out">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3M9 9l3-3-3-3M12 6.5H5"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div id="drive-status" class="drive-status" style="display:none"></div>
     </div>
 
     <div class="set-selector-wrap">
@@ -107,31 +122,25 @@
     <div id="card-grid"></div>
   </div>
 
-  <!-- Focus / browse mode overlay -->
   <div id="focus-overlay">
     <div id="focus-panel">
-
       <button id="focus-btn-close" class="focus-close" title="Back to grid (Esc)">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
         </svg>
       </button>
-
       <div id="focus-img-wrap">
         <img id="focus-img" src="" alt="" />
         <div id="focus-badge" class="focus-badge"></div>
       </div>
-
       <div id="focus-info">
         <div id="focus-name"></div>
         <div id="focus-num"></div>
       </div>
-
       <div id="focus-actions">
         <button id="focus-btn-minus" class="focus-act hidden" title="Remove one">&#x2212;</button>
         <button id="focus-btn-plus"  class="focus-act"        title="Add one">&#x2b;</button>
       </div>
-
       <div id="focus-nav">
         <button id="focus-btn-prev" class="focus-nav-btn" title="Previous (←)">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -145,11 +154,8 @@
           </svg>
         </button>
       </div>
-
       <div id="focus-progress-track"><div id="focus-progress"></div></div>
-
       <div id="focus-hint">← → navigate &nbsp;·&nbsp; Space add/remove &nbsp;·&nbsp; Esc close</div>
-
     </div>
   </div>
 
@@ -171,7 +177,30 @@
   </div>
 
 </div>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  STEP 1 — Google Cloud setup (do this once)                 ║
+  ║                                                             ║
+  ║  1. https://console.cloud.google.com → New project          ║
+  ║  2. APIs & Services → Enable → "Google Drive API"           ║
+  ║  3. Credentials → Create → OAuth 2.0 Client ID              ║
+  ║       Application type: Web application                     ║
+  ║  4. Authorised JavaScript origins → Add URI:                ║
+  ║       https://YOUR-USERNAME.github.io                       ║
+  ║  5. Copy the Client ID that looks like:                     ║
+  ║       123456789-abc...xyz.apps.googleusercontent.com        ║
+  ║                                                             ║
+  ║  STEP 2 — Paste it below, then push to GitHub               ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<script>
+  window.GOOGLE_CLIENT_ID = 'PASTE_YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
+</script>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="cards_data.js"></script>
+<script src="google-drive.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -57,6 +57,8 @@ function loadCollection() {
 function saveCollection() {
   try { localStorage.setItem('pokedex_collection', JSON.stringify(collection)); }
   catch(e) { console.warn('localStorage save failed:', e); }
+  // Auto-sync to the signed-in user's Google Drive
+  if (window.GDrive) window.GDrive.save(collection);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -75,6 +77,31 @@ function formatNum(n) {
 
 async function init() {
   collection = loadCollection();
+
+  // ── Google Drive callbacks ─────────────────────────────────────
+  if (window.GDrive) {
+    window.GDrive.onSignIn(driveData => {
+      const driveCount = Object.keys(driveData).length;
+      if (driveCount > 0) {
+        // Drive has saved data — load it
+        collection = driveData;
+        try { localStorage.setItem('pokedex_collection', JSON.stringify(collection)); }
+        catch(_) {}
+        if (currentSet) {
+          if (currentView === 'focus') renderFocus(); else renderGrid();
+          updateStats();
+        }
+        showToast(`☁ Loaded ${driveCount} entries from Google Drive`);
+      } else {
+        // First time this user signs in — push local data up as initial backup
+        if (Object.keys(collection).length > 0) window.GDrive.save(collection);
+        showToast('☁ Google Drive connected');
+      }
+    });
+    window.GDrive.onSignOut(() => {
+      showToast('Signed out — changes saved locally only');
+    });
+  }
 
   let sets;
   try {
@@ -171,23 +198,72 @@ function importCollection(e) {
     try {
       const data = JSON.parse(ev.target.result);
       if (typeof data !== 'object' || Array.isArray(data)) throw new Error('bad format');
-      const count = Object.keys(data).length;
-      collection = data;
-      saveCollection();
-      // Re-render whichever view is active
-      if (currentSet) {
-        if (currentView === 'focus') renderFocus();
-        else renderGrid();
-        updateStats();
+
+      const applyImport = () => {
+        const count = Object.keys(data).length;
+        collection = data;
+        saveCollection();
+        if (currentSet) {
+          if (currentView === 'focus') renderFocus(); else renderGrid();
+          updateStats();
+        }
+        showToast(`✦ Loaded ${count} card entries!`);
+      };
+
+      // If Drive is connected and already has data, warn before overwriting
+      const driveConnected = window.GDrive?.isSignedIn;
+      const currentCount   = Object.keys(collection).length;
+      if (driveConnected && currentCount > 0) {
+        showImportConfirm(currentCount, Object.keys(data).length, applyImport);
+      } else {
+        applyImport();
       }
-      showToast(`✦ Loaded ${count} card entries!`);
     } catch {
       showToast('⚠ Could not read that file.');
     }
-    // Reset so the same file can be re-imported if needed
     e.target.value = '';
   };
   reader.readAsText(file);
+}
+
+function showImportConfirm(currentCount, incomingCount, onConfirm) {
+  document.getElementById('import-confirm-overlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'import-confirm-overlay';
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-panel">
+      <div class="confirm-icon">☁</div>
+      <div class="confirm-title">Overwrite Google Drive backup?</div>
+      <div class="confirm-body">
+        Your Google Drive has <strong>${currentCount}</strong>
+        card entr${currentCount === 1 ? 'y' : 'ies'} saved.
+        Loading this file (<strong>${incomingCount}</strong>
+        entr${incomingCount === 1 ? 'y' : 'ies'}) will
+        <strong>permanently replace</strong> the Drive backup.
+      </div>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-cancel">Keep Drive data</button>
+        <button class="confirm-btn confirm-ok">Yes, overwrite</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
+
+  const close = () => {
+    overlay.classList.remove('open');
+    overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+  };
+  overlay.querySelector('.confirm-cancel').addEventListener('click', close);
+  overlay.querySelector('.confirm-ok').addEventListener('click', () => { close(); onConfirm(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  const onKey = e => {
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); }
+    if (e.key === 'Enter')  { close(); onConfirm(); document.removeEventListener('keydown', onKey); }
+  };
+  document.addEventListener('keydown', onKey);
 }
 
 // ── Set loading ───────────────────────────────────────────────────────────────
