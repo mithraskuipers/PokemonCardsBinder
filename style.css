@@ -1218,8 +1218,87 @@ body.focus-open { overflow: hidden; }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   ── REMOVE MODAL ────────────────────────────────────────────────
+   ── EDIT MODAL ───────────────────────────────────────────────────
    ════════════════════════════════════════════════════════════════ */
+
+.edit-panel {
+  max-width: 380px !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  padding: 28px 24px 20px !important;
+}
+
+#edit-attr-container .attr-selector {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  gap: 9px;
+}
+#edit-attr-container .attr-label { width: 54px; font-size: 10px; }
+#edit-attr-container .attr-pill  { font-size: 11px; padding: 4px 9px; }
+
+.confirm-save {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+.confirm-save:hover { background: var(--blue2); border-color: var(--blue2); }
+
+/* ── Editable owned-copy pills in focus panel ── */
+.focus-owned-pill.editable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 4px 6px 4px 4px;
+  margin: -4px -6px -4px -4px;
+  transition: background .15s, box-shadow .15s;
+}
+.focus-owned-pill.editable:hover {
+  background: rgba(74,158,255,.10);
+  box-shadow: 0 0 0 1px rgba(74,158,255,.3);
+}
+.fop-edit-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .12s, color .12s, border-color .12s;
+  flex-shrink: 0;
+}
+.focus-owned-pill.editable:hover .fop-edit-btn {
+  opacity: 1;
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+/* ── Edit button in remove modal ── */
+.remove-entry-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.remove-entry-edit {
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.remove-entry-edit:hover { background: var(--bg4); color: var(--blue); border-color: var(--blue); }
+
 
 .remove-panel {
   max-width: 420px !important;

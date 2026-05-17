@@ -531,7 +531,14 @@ function openRemoveModal(key, onDone) {
         <span class="re-chip re-lang">${LANGUAGE_LABELS[entry.language]}</span>
         <span class="re-chip re-qual" style="--qc:${QUALITY_COLORS[entry.quality]}">${QUALITY_STARS[entry.quality]} ${QUALITY_LABELS[entry.quality]}</span>
       </div>
-      <button class="remove-entry-btn">Remove</button>`;
+      <div class="remove-entry-btns">
+        <button class="remove-entry-edit" title="Edit this copy">✎ Edit</button>
+        <button class="remove-entry-btn">Remove</button>
+      </div>`;
+    row.querySelector('.remove-entry-edit').addEventListener('click', () => {
+      close();
+      openEditModal(key, i, () => { onDone(); });
+    });
     row.querySelector('.remove-entry-btn').addEventListener('click', () => {
       collection[key].splice(i, 1);
       if (collection[key].length === 0) delete collection[key];
@@ -543,6 +550,56 @@ function openRemoveModal(key, onDone) {
 
   const close = () => { overlay.classList.remove('open'); overlay.addEventListener('transitionend', () => overlay.remove(), { once: true }); };
   overlay.querySelector('#remove-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  const onKey = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+}
+
+// ── Edit modal ────────────────────────────────────────────────────────────────
+function openEditModal(key, entryIndex, onDone) {
+  const entries = collection[key] || [];
+  const entry   = entries[entryIndex];
+  if (!entry) return;
+  document.getElementById('edit-modal-overlay')?.remove();
+
+  const cardName = (() => {
+    const card = currentCards.find(c => cardKey(c) === key);
+    return card ? card.name : key.split('/').pop();
+  })();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'edit-modal-overlay';
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-panel edit-panel">
+      <div class="confirm-title">Edit copy of <em>${cardName}</em></div>
+      <p class="remove-subtitle">Copy #${entryIndex + 1} — adjust settings below</p>
+      <div id="edit-attr-container"></div>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-cancel" id="edit-cancel">Cancel</button>
+        <button class="confirm-btn confirm-save"   id="edit-save">Save changes</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
+
+  const pending  = { edition: entry.edition, language: entry.language, quality: entry.quality };
+  const attrWrap = overlay.querySelector('#edit-attr-container');
+  attrWrap.appendChild(buildAttrSelector(pending, () => {}));
+
+  const close = () => {
+    overlay.classList.remove('open');
+    overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+  };
+
+  overlay.querySelector('#edit-save').addEventListener('click', () => {
+    collection[key][entryIndex] = { ...pending };
+    saveCollection();
+    showToast(`✦ Copy updated`);
+    close();
+    onDone();
+  });
+  overlay.querySelector('#edit-cancel').addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   const onKey = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
   document.addEventListener('keydown', onKey);
@@ -592,14 +649,19 @@ function renderFocus() {
     ownedTitle.className = 'focus-section-label';
     ownedTitle.textContent = `Your ${count} cop${count===1?'y':'ies'}:`;
     ownedSection.appendChild(ownedTitle);
-    entries.forEach(e => {
+    entries.forEach((e, i) => {
       const pill = document.createElement('div');
-      pill.className = 'focus-owned-pill';
+      pill.className = 'focus-owned-pill editable';
+      pill.title = 'Click to edit this copy';
       pill.innerHTML = `
         <span class="fop-chip fop-ed">${EDITION_LABELS[e.edition]}</span>
         <span class="fop-chip fop-lang">${LANGUAGE_LABELS[e.language]}</span>
         <span class="fop-chip fop-qual" style="--qc:${QUALITY_COLORS[e.quality]}">${QUALITY_STARS[e.quality]} ${QUALITY_LABELS[e.quality]}</span>
+        <button class="fop-edit-btn" title="Edit">✎</button>
       `;
+      pill.addEventListener('click', () => {
+        openEditModal(key, i, () => { renderFocus(); updateGridCard(focusIndex); updateStats(); });
+      });
       ownedSection.appendChild(pill);
     });
     focusAttrPanel.appendChild(ownedSection);
