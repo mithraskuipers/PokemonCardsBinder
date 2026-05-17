@@ -132,30 +132,32 @@
       <div id="focus-img-wrap">
         <img id="focus-img" src="" alt="" />
         <div id="focus-badge" class="focus-badge"></div>
+        <div id="focus-actions">
+          <button id="focus-btn-minus" class="focus-act hidden" title="Remove one">&#x2212;</button>
+          <button id="focus-btn-plus"  class="focus-act"        title="Add one">&#x2b;</button>
+        </div>
       </div>
-      <div id="focus-info">
-        <div id="focus-name"></div>
-        <div id="focus-num"></div>
+      <div id="focus-right">
+        <div id="focus-info">
+          <div id="focus-name"></div>
+          <div id="focus-num"></div>
+        </div>
+        <div id="focus-nav">
+          <button id="focus-btn-prev" class="focus-nav-btn" title="Previous (←)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span id="focus-counter">1 / 1</span>
+          <button id="focus-btn-next" class="focus-nav-btn" title="Next (→)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div id="focus-progress-track"><div id="focus-progress"></div></div>
+        <div id="focus-hint">← → navigate &nbsp;·&nbsp; Space add/remove &nbsp;·&nbsp; Esc close</div>
       </div>
-      <div id="focus-actions">
-        <button id="focus-btn-minus" class="focus-act hidden" title="Remove one">&#x2212;</button>
-        <button id="focus-btn-plus"  class="focus-act"        title="Add one">&#x2b;</button>
-      </div>
-      <div id="focus-nav">
-        <button id="focus-btn-prev" class="focus-nav-btn" title="Previous (←)">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <span id="focus-counter">1 / 1</span>
-        <button id="focus-btn-next" class="focus-nav-btn" title="Next (→)">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <div id="focus-progress-track"><div id="focus-progress"></div></div>
-      <div id="focus-hint">← → navigate &nbsp;·&nbsp; Space add/remove &nbsp;·&nbsp; Esc close</div>
     </div>
   </div>
 

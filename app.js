@@ -635,8 +635,8 @@ function renderFocus() {
   if (!focusAttrPanel) {
     focusAttrPanel = document.createElement('div');
     focusAttrPanel.id = 'focus-attr-panel';
-    const focusActions = document.getElementById('focus-actions');
-    focusActions.parentNode.insertBefore(focusAttrPanel, focusActions);
+    const focusInfo = document.getElementById('focus-info');
+    focusInfo.insertAdjacentElement('afterend', focusAttrPanel);
   }
   focusAttrPanel.innerHTML = '';
 

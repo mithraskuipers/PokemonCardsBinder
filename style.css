@@ -622,20 +622,20 @@ select#empty-set-picker {
 
 body.focus-open { overflow: hidden; }
 
-/* Panel — two-column layout: card left, controls right */
+/* Panel — two-column layout: card left, right column */
 #focus-panel {
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: auto;
+  grid-template-rows: auto 1fr;
   align-items: start;
-  gap: 0 24px;
+  gap: 0 28px;
   width: 100%;
   max-width: 680px;
   animation: focusPop .2s cubic-bezier(.34,1.4,.64,1) both;
 }
 
-/* Close button stays top-right of entire panel */
+/* Close button spans full width, sits above both columns */
 .focus-close {
   grid-column: 1 / -1;
   justify-self: end;
@@ -644,22 +644,58 @@ body.focus-open { overflow: hidden; }
   z-index: 10;
 }
 
-/* Left column: just the card image */
+/* Left column: card image with +/- pinned to its bottom corners */
 #focus-img-wrap {
   grid-column: 1;
-  grid-row: 2 / 10;
+  grid-row: 2;
   position: relative;
   width: min(240px, 38vw);
   flex-shrink: 0;
+  align-self: start;
 }
 
-/* Right column items all go into col 2 */
-#focus-info          { grid-column: 2; }
-#focus-attr-panel    { grid-column: 2; }
-#focus-actions       { grid-column: 2; }
-#focus-nav           { grid-column: 2; }
-#focus-progress-track{ grid-column: 2; }
-#focus-hint          { grid-column: 2; }
+/* +/- buttons pinned to bottom corners of the card image */
+#focus-actions {
+  position: absolute;
+  bottom: 10px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+#focus-btn-minus.hidden { visibility: hidden; pointer-events: none; }
+
+/* Right column — flex column, fills grid cell height */
+#focus-right {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-self: stretch;
+  min-height: 0;
+}
+
+/* info block: fixed, never wraps */
+#focus-info { flex-shrink: 0; }
+
+/* attr panel: grows to fill space, scrolls if needed */
+#focus-attr-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* bottom group: nav + progress + hint, always at the bottom */
+#focus-bottom {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 @keyframes focusPop {
   from { opacity: 0; transform: scale(.92); }
@@ -735,31 +771,24 @@ body.focus-open { overflow: hidden; }
 }
 
 /* +/- action buttons */
-#focus-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: flex-start;
-}
 .focus-act {
-  width: 52px; height: 52px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   border: none;
-  font-size: 28px; font-weight: 700; line-height: 1;
+  font-size: 24px; font-weight: 700; line-height: 1;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   padding: 0 0 2px;
   transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .15s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 16px #00000060;
+  box-shadow: 0 4px 16px #00000080;
 }
 .focus-act:active { transform: scale(.88) !important; }
 #focus-btn-plus  { background: var(--blue); color: #fff; }
 #focus-btn-plus:hover  { background: #fff; color: var(--blue); transform: scale(1.08); }
 #focus-btn-minus { background: var(--red);  color: #fff; }
 #focus-btn-minus:hover { background: #fff; color: var(--red);  transform: scale(1.08); }
-#focus-btn-minus.hidden { display: none; }
 
 /* Prev / Next navigation */
 #focus-nav {
@@ -1218,87 +1247,8 @@ body.focus-open { overflow: hidden; }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   ── EDIT MODAL ───────────────────────────────────────────────────
+   ── REMOVE MODAL ────────────────────────────────────────────────
    ════════════════════════════════════════════════════════════════ */
-
-.edit-panel {
-  max-width: 380px !important;
-  align-items: stretch !important;
-  gap: 14px !important;
-  padding: 28px 24px 20px !important;
-}
-
-#edit-attr-container .attr-selector {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  gap: 9px;
-}
-#edit-attr-container .attr-label { width: 54px; font-size: 10px; }
-#edit-attr-container .attr-pill  { font-size: 11px; padding: 4px 9px; }
-
-.confirm-save {
-  background: var(--blue);
-  color: #fff;
-  border-color: var(--blue);
-}
-.confirm-save:hover { background: var(--blue2); border-color: var(--blue2); }
-
-/* ── Editable owned-copy pills in focus panel ── */
-.focus-owned-pill.editable {
-  cursor: pointer;
-  border-radius: 8px;
-  padding: 4px 6px 4px 4px;
-  margin: -4px -6px -4px -4px;
-  transition: background .15s, box-shadow .15s;
-}
-.focus-owned-pill.editable:hover {
-  background: rgba(74,158,255,.10);
-  box-shadow: 0 0 0 1px rgba(74,158,255,.3);
-}
-.fop-edit-btn {
-  margin-left: auto;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text3);
-  font-size: 12px;
-  line-height: 1;
-  padding: 2px 6px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity .12s, color .12s, border-color .12s;
-  flex-shrink: 0;
-}
-.focus-owned-pill.editable:hover .fop-edit-btn {
-  opacity: 1;
-  color: var(--blue);
-  border-color: var(--blue);
-}
-
-/* ── Edit button in remove modal ── */
-.remove-entry-btns {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.remove-entry-edit {
-  padding: 5px 10px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background .15s, color .15s, border-color .15s;
-}
-.remove-entry-edit:hover { background: var(--bg4); color: var(--blue); border-color: var(--blue); }
-
 
 .remove-panel {
   max-width: 420px !important;
